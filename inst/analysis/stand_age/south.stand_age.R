@@ -50,6 +50,7 @@ boot_at_null <- parametric_bootstrap(fit, null, num_boot=100, verbose=TRUE, rand
 save(boot_at_null, boot_at_mle, file="south.stand_age.simulations.RData")
 
 #figures
+#dir.create("fig")
 #plot_1d_likelihood_surface(fit, simulations=boot_at_mle) + 
 #  ggtitle("Simulations from fitted model")
 #plot_1d_likelihood_surface(fit, simulations=boot_at_null) + 

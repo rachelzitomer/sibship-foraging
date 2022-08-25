@@ -17,3 +17,7 @@ landscape_model_fitted <- function(par, landscape_distance_to_traps, colony_coun
     .Call(`_sibships_landscape_model_fitted`, par, landscape_distance_to_traps, colony_counts_at_traps, floral_cover_at_traps, landscape_age)
 }
 
+landscape_model_gradient_weighted <- function(par, landscape_distance_to_traps, colony_counts_at_traps, floral_cover_at_traps, landscape_age, weights) {
+    .Call(`_sibships_landscape_model_gradient_weighted`, par, landscape_distance_to_traps, colony_counts_at_traps, floral_cover_at_traps, landscape_age, weights)
+}
+

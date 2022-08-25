@@ -48,4 +48,7 @@ fit_with_no_singletons <- sibship_foraging_model(
   verbose=TRUE
 )
 
-save(fit_with_singletons, fit_with_no_singletons, file="midnorth.singletons_or_not.RData")
+save(fit_with_singletons, fit_with_no_singletons, file="midnorth.singletons.RData")
+
+#TODO fig
+dir.create("fig")

@@ -32,6 +32,7 @@ struct landscape_model
   const arma::mat colony_counts_at_traps;
   const arma::vec floral_cover_at_traps;
   const arma::vec landscape_age;
+  const arma::vec weights;
 
   arma::mat conditional_capture_rate;
   arma::vec prior_prob_of_nest_location;
@@ -47,11 +48,33 @@ struct landscape_model
     , num_traps (floral_cover_at_traps.n_elem)
     , num_colonies (colony_counts_at_traps.n_rows)
     , num_landscape (landscape_age.n_elem)
+    , weights (arma::ones(num_colonies))
     , conditional_capture_rate (num_traps, num_landscape)
     , prior_prob_of_nest_location (num_landscape)
   {
     if(!(landscape_distance_to_traps.n_rows == num_traps && landscape_distance_to_traps.n_cols == num_landscape)) Rcpp::stop("err dim(landscape_distance_to_traps)");
     if(!(colony_counts_at_traps.n_rows == num_colonies && colony_counts_at_traps.n_cols == num_traps)) Rcpp::stop("err dim(colony_counts_at_traps)");
+  }
+
+  landscape_model (arma::mat landscape_distance_to_traps,
+                   arma::mat colony_counts_at_traps,
+                   arma::vec floral_cover_at_traps,
+                   arma::vec landscape_age,
+                   arma::vec weights)
+    : landscape_distance_to_traps (landscape_distance_to_traps)
+    , colony_counts_at_traps (colony_counts_at_traps)
+    , floral_cover_at_traps (floral_cover_at_traps)
+    , landscape_age (landscape_age)
+    , num_traps (floral_cover_at_traps.n_elem)
+    , num_colonies (colony_counts_at_traps.n_rows)
+    , num_landscape (landscape_age.n_elem)
+    , weights (weights)
+    , conditional_capture_rate (num_traps, num_landscape)
+    , prior_prob_of_nest_location (num_landscape)
+  {
+    if(!(landscape_distance_to_traps.n_rows == num_traps && landscape_distance_to_traps.n_cols == num_landscape)) Rcpp::stop("err dim(landscape_distance_to_traps)");
+    if(!(colony_counts_at_traps.n_rows == num_colonies && colony_counts_at_traps.n_cols == num_traps)) Rcpp::stop("err dim(colony_counts_at_traps)");
+    if(!(weights.n_elem == num_colonies)) Rcpp::stop("err dim(weights)");
   }
 
   double marginal_likelihood (const double floral_cover_on_capture_rate, const double landscape_distance_on_capture_rate, const double landscape_age_on_colony_location)
@@ -108,7 +131,7 @@ struct landscape_model
         marginal_lik += exp(conditional_lik + constants.at(colony));
       }
 
-      target += log(marginal_lik);
+      target += weights.at(colony) * log(marginal_lik);
     }
 
     return target;
@@ -170,7 +193,7 @@ struct landscape_model
         marginal_lik(colony) += exp(conditional_lik(cell,colony) + constants.at(colony));
       }
 
-      target += log(marginal_lik(colony));
+      target += weights(colony) * log(marginal_lik(colony));
     }
 
     // marginal likelihood, reverse diff
@@ -179,7 +202,7 @@ struct landscape_model
    
     for (unsigned colony=0; colony<num_colonies; ++colony)
     {
-      double d_marginal_lik = 1/marginal_lik(colony);
+      double d_marginal_lik = weights(colony)/marginal_lik(colony);
       for (unsigned cell=0; cell<num_landscape; ++cell)
       {
         double d_conditional_lik = d_marginal_lik * exp(conditional_lik(cell,colony) + constants.at(colony));
@@ -263,10 +286,7 @@ struct landscape_model
           conditional_lik += log(conditional_capture_rate.at(trap,cell)) * colony_counts_at_traps.at(colony,trap);
         }
 
-        //TODO: divide conditional lik vector by marginal lik?
-        //has to be safe divide I guess
         conditional_posterior.at(cell, colony) = conditional_lik;
-        //marginal_lik += exp(conditional_lik + constants.at(colony));
       }
 
       conditional_posterior.col(colony) -=  conditional_posterior.col(colony).max();
@@ -322,6 +342,21 @@ Rcpp::List landscape_model_fitted (
       Rcpp::_["conditional_capture_rate"] = model.conditional_capture_rate,
       Rcpp::_["conditional_posterior"] = conditional_posterior
   );
+}
+
+// [[Rcpp::export]]
+arma::vec landscape_model_gradient_weighted (
+    arma::vec par, 
+    arma::mat landscape_distance_to_traps,
+    arma::mat colony_counts_at_traps,
+    arma::vec floral_cover_at_traps,
+    arma::vec landscape_age,
+    arma::vec weights
+    )
+{
+  if(par.n_elem != 3) Rcpp::stop("err dim(par)");
+  landscape_model model (landscape_distance_to_traps, colony_counts_at_traps, floral_cover_at_traps, landscape_age, weights);
+  return model.gradient(par[0], par[1], par[2]);
 }
 
 //RCPP_EXPOSED_CLASS_NODECL(landscape_model)

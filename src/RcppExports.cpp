@@ -68,12 +68,29 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// landscape_model_gradient_weighted
+arma::vec landscape_model_gradient_weighted(arma::vec par, arma::mat landscape_distance_to_traps, arma::mat colony_counts_at_traps, arma::vec floral_cover_at_traps, arma::vec landscape_age, arma::vec weights);
+RcppExport SEXP _sibships_landscape_model_gradient_weighted(SEXP parSEXP, SEXP landscape_distance_to_trapsSEXP, SEXP colony_counts_at_trapsSEXP, SEXP floral_cover_at_trapsSEXP, SEXP landscape_ageSEXP, SEXP weightsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::vec >::type par(parSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type landscape_distance_to_traps(landscape_distance_to_trapsSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type colony_counts_at_traps(colony_counts_at_trapsSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type floral_cover_at_traps(floral_cover_at_trapsSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type landscape_age(landscape_ageSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type weights(weightsSEXP);
+    rcpp_result_gen = Rcpp::wrap(landscape_model_gradient_weighted(par, landscape_distance_to_traps, colony_counts_at_traps, floral_cover_at_traps, landscape_age, weights));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_sibships_softmax_jacobian_multiply", (DL_FUNC) &_sibships_softmax_jacobian_multiply, 2},
     {"_sibships_landscape_model_loglik", (DL_FUNC) &_sibships_landscape_model_loglik, 5},
     {"_sibships_landscape_model_gradient", (DL_FUNC) &_sibships_landscape_model_gradient, 5},
     {"_sibships_landscape_model_fitted", (DL_FUNC) &_sibships_landscape_model_fitted, 5},
+    {"_sibships_landscape_model_gradient_weighted", (DL_FUNC) &_sibships_landscape_model_gradient_weighted, 6},
     {NULL, NULL, 0}
 };
 
