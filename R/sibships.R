@@ -13,6 +13,7 @@
   data
 }
 
+
 .solve_quadratic <- function(X, y, window_size=3, force_interior=TRUE)
 {
   # fit a multivariable quadratic model and return maximum
@@ -48,9 +49,11 @@
   )
   out <- matrix(c(mle, ll_max), 1, byrow=TRUE)
   colnames(out) <- c(colnames(X), "loglik")
-  if (force_interior & !all(interior)) { out[] <- NA }
+  #if (force_interior & !all(interior)) { out[] <- NA }
+  if (force_interior) { out[!interior] <- out[!interior]*Inf }
   return(out)
 }
+
 
 sibship_foraging_model <- function(
   colony_count_at_traps, 
@@ -120,36 +123,44 @@ sibship_foraging_model <- function(
   mle <- .solve_quadratic(parameter_grid, fit_ll, window_size=window_size)
   loglik <- mle[1, "loglik"]
   mle <- mle[1, colnames(parameter_grid)]
-  stopifnot(all(!is.na(mle)))
 
-  # refit at MLE
-  cat("Fitting at MLE\n")
-  resistance <- values(resistance_model(landscape_rasters, mle))
-  resistance_distance <- distance_to_focal_raw(
-    conductance=1./resistance,
-    s=surface, 
-    num_blocks=num_blocks,
-    average_conductance=FALSE
-  )
-  data$landscape_distance_to_traps <- resistance_distance
-  data <- .scale_data(data)
-  fit_mle <- fit_2parameter_model(
-    data, 
-    starting_values,
-    convergence_tolerance=convergence_tolerance,
-    verbose=verbose
-  )
-  nuisance_parameters <- fit_mle$par
-  attr(loglik, "error") <- (-fit_mle$value) - loglik
+  #change so that returns -Inf, Inf -- then any(is.infinite(mle)), drop warning
+  #if (any(is.na(mle)))
+  if (any(is.infinite(mle)))
+  {
+    #warnings("MLE is outside bounds of parameter grid")
+    fit_mle <- resistance <- resistance_distance <- 
+      nuisance_parameters <- colony_locations <- NULL
+  } else {
+    # refit at MLE
+    cat("Fitting at MLE\n")
+    resistance <- values(resistance_model(landscape_rasters, mle))
+    resistance_distance <- distance_to_focal_raw(
+      conductance=1./resistance,
+      s=surface, 
+      num_blocks=num_blocks,
+      average_conductance=FALSE
+    )
+    data$landscape_distance_to_traps <- resistance_distance
+    data <- .scale_data(data)
+    fit_mle <- fit_2parameter_model(
+      data, 
+      starting_values,
+      convergence_tolerance=convergence_tolerance,
+      verbose=verbose
+    )
+    nuisance_parameters <- fit_mle$par
+    attr(loglik, "error") <- (-fit_mle$value) - loglik
 
-  # get fitted values at MLE
-  colony_locations <- landscape_model_fitted(
-    c(nuisance_parameters, 0),
-    data$landscape_distance_to_traps, 
-    data$colony_count_at_traps, 
-    data$floral_cover_at_traps, 
-    data$landscape_age
-  ) 
+    # get fitted values at MLE
+    colony_locations <- landscape_model_fitted(
+      c(nuisance_parameters, 0),
+      data$landscape_distance_to_traps, 
+      data$colony_count_at_traps, 
+      data$floral_cover_at_traps, 
+      data$landscape_age
+    ) 
+  }
 
   output <- list(
     optimizer=fit_list, 
@@ -172,6 +183,7 @@ sibship_foraging_model <- function(
   class(output) <- "sibship_foraging_model"
   output
 } 
+
 
 parametric_bootstrap <- function(
   fitted_model, 
@@ -197,6 +209,7 @@ parametric_bootstrap <- function(
   surface <- fitted_model$surface
   true_parameters <- outer(rep(1, nrow(parameter_grid)), pars)
   stopifnot(all(colnames(true_parameters) == colnames(parameter_grid)))
+  colnames(true_parameters) <- paste0("true_", colnames(true_parameters))
   starting_values <- c(
     "floral_cover_on_capture_rate" = 0, 
     "landscape_distance_on_capture_rate" = -0.5
@@ -222,6 +235,7 @@ parametric_bootstrap <- function(
   nuisance_parameters <- fit$par
   stopifnot(all(names(nuisance_parameters) %in% names(starting_values)))
   true_nuisance_pars <- outer(rep(1, nrow(parameter_grid)), nuisance_parameters)
+  colnames(true_nuisance_pars) <- paste0("true_", colnames(true_nuisance_pars))
 
   # Simulate data from fitted model, then refit to simulations
   seed_sequence <- sample.int(10e6, num_boot)
@@ -234,12 +248,6 @@ parametric_bootstrap <- function(
       data, 
       nuisance_parameters, 
       random_seed=seed
-    )
-    refit <- fit_2parameter_model(
-      data, 
-      starting_values, 
-      convergence_tolerance=convergence_tolerance,
-      verbose=verbose
     )
 
     # Fit simulated data across parameter grid
@@ -256,20 +264,12 @@ parametric_bootstrap <- function(
     # Loglikelihood, nuisance parameters across grid
     sim_loglik <- Reduce(c, lapply(refit_list, function(x) -x$value))
     sim_nuisance_pars <- Reduce(rbind, lapply(refit_list, function(x) x$par))
-    tmp <- cbind(
-      seed=seed, 
-      true_parameters,
-      true_nuisance_pars,
-      parameter_grid, 
-      sim_nuisance_pars,
-      sim_loglik=sim_loglik
-    )
-    fitted_sims <- rbind(fitted_sims, tmp)
+    colnames(sim_nuisance_pars) <- paste0("sim_", colnames(sim_nuisance_pars))
 
     # Get better estimate of MLE by quadratic interpolation, refit
     mle <- .solve_quadratic(parameter_grid, sim_loglik, window_size=window_size)
-    if (any(is.na(mle))) warning("MLE was outside bounds of parameter grid, setting to NA")
-    #TODO: could refit at MLE?
+    #if (any(is.na(mle))) 
+    #  warning("MLE was outside bounds of parameter grid, setting to NA")
 
     # Refit simulated data at "true value" (e.g. used to generate simulation)
     sim_data$landscape_distance_to_traps <- resistance_distance
@@ -288,6 +288,17 @@ parametric_bootstrap <- function(
       mle
     )
     mles <- rbind(mles, tmp)
+
+    # Store refitted models
+    tmp <- cbind(
+      seed=seed, 
+      true_parameters,
+      true_nuisance_pars,
+      parameter_grid, 
+      sim_nuisance_pars,
+      sim_loglik=sim_loglik
+    )
+    fitted_sims <- rbind(fitted_sims, tmp)
   }
 
   rownames(fitted_sims) <- NULL
@@ -296,3 +307,87 @@ parametric_bootstrap <- function(
   return(list(loglik_surfaces=fitted_sims, MLEs=mles))
 } 
 
+
+nonparametric_bootstrap <- function(
+  fitted_model, 
+  num_boot=10, 
+  num_blocks=2, 
+  window_size=3,
+  convergence_tolerance=1e-4,
+  random_seed=NULL,
+  verbose=FALSE)
+{
+  stopifnot(class(fitted_model) == "sibship_foraging_model")
+  stopifnot(length(pars) == ncol(fitted_model$parameter_grid))
+  stopifnot(all(names(pars) %in% colnames(fitted_model$parameter_grid)))
+
+  set.seed(random_seed)
+
+  # Pull out inputs from fitted model object
+  resistance_distance_grid <- fitted_model$resistance_distance_grid
+  data <- fitted_model$data
+  parameter_grid <- fitted_model$parameter_grid
+  landscape_rasters <- fitted_model$landscape_rasters
+  surface <- fitted_model$surface
+  starting_values <- c(
+    "floral_cover_on_capture_rate" = 0, 
+    "landscape_distance_on_capture_rate" = -0.5
+  )
+
+  # Simulate data from fitted model, then refit to simulations
+  seed_sequence <- sample.int(10e6, num_boot)
+  fitted_sims <- data.frame()
+  mles <- data.frame()
+  for(seed in seed_sequence){
+
+    cat("Simulating from bootstrap seed ", seed, " and refitting\n")
+    sim_data <- data
+    bootstrap_sample <- sample(1:nrow(sim_data$colony_count_at_traps), replace=TRUE)
+    sim_data$colony_count_at_traps <-
+      sim_data$colony_count_at_traps[bootstrap_sample,]
+
+    # Fit simulated data across parameter grid
+    refit_list <- lapply(1:nrow(parameter_grid), function(i) {
+      sim_data$landscape_distance_to_traps <- resistance_distance_grid[,,i]
+      sim_data <- .scale_data(sim_data)
+      fit_2parameter_model(
+        sim_data, 
+        starting_values, 
+        convergence_tolerance=convergence_tolerance
+      )
+    })
+
+    # Loglikelihood, nuisance parameters across grid
+    sim_loglik <- Reduce(c, lapply(refit_list, function(x) -x$value))
+    sim_nuisance_pars <- Reduce(rbind, lapply(refit_list, function(x) x$par))
+    colnames(sim_nuisance_pars) <- paste0("sim_", colnames(sim_nuisance_pars))
+
+    # Get better estimate of MLE by quadratic interpolation, refit
+    mle <- .solve_quadratic(parameter_grid, sim_loglik, window_size=window_size)
+    if (any(is.na(mle))) warning("MLE was outside bounds of parameter grid, setting to NA")
+
+    # Store MLEs
+    tmp <- data.frame(
+      seed=seed,
+      mle
+    )
+    mles <- rbind(mles, tmp)
+
+    # Store refitted models
+    parameter_grid_rename <- parameter_grid
+    colnames(parameter_grid_rename) <-
+      paste0("sim_", colnames(parameter_grid_rename))
+    tmp <- cbind(
+      seed=seed, 
+      parameter_grid_rename, 
+      sim_nuisance_pars,
+      sim_loglik=sim_loglik
+    )
+    fitted_sims <- rbind(fitted_sims, tmp)
+  }
+
+  rownames(fitted_sims) <- NULL
+  rownames(mles) <- NULL
+
+  return(list(loglik_surfaces=fitted_sims, MLEs=mles))
+} 

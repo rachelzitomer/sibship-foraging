@@ -10,3 +10,4 @@ License: MIT
 Imports: Rcpp (>= 1.0.9), raster (>= 3.5), radish, nloptr, Matrix
 Depends: Matrix
 LinkingTo: Rcpp, RcppArmadillo
+LazyData: true
