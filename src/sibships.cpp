@@ -1,5 +1,7 @@
 #include <RcppArmadillo.h> 
 
+// TODO check gradient with nonzero offsets
+
 // [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::plugins(cpp11)]]
 
@@ -33,10 +35,12 @@ struct landscape_model
   const arma::vec floral_cover_at_traps;
   const arma::vec landscape_age;
   const arma::vec weights;
+  const arma::vec offsets;
 
   arma::mat conditional_capture_rate;
   arma::vec prior_prob_of_nest_location;
 
+  // DEPRECATE ME
   landscape_model (arma::mat landscape_distance_to_traps,
                    arma::mat colony_counts_at_traps,
                    arma::vec floral_cover_at_traps,
@@ -49,6 +53,7 @@ struct landscape_model
     , num_colonies (colony_counts_at_traps.n_rows)
     , num_landscape (landscape_age.n_elem)
     , weights (arma::ones(num_colonies))
+    , offsets (arma::zeros(num_traps))
     , conditional_capture_rate (num_traps, num_landscape)
     , prior_prob_of_nest_location (num_landscape)
   {
@@ -56,6 +61,7 @@ struct landscape_model
     if(!(colony_counts_at_traps.n_rows == num_colonies && colony_counts_at_traps.n_cols == num_traps)) Rcpp::stop("err dim(colony_counts_at_traps)");
   }
 
+  // DEPRECATE ME
   landscape_model (arma::mat landscape_distance_to_traps,
                    arma::mat colony_counts_at_traps,
                    arma::vec floral_cover_at_traps,
@@ -69,12 +75,37 @@ struct landscape_model
     , num_colonies (colony_counts_at_traps.n_rows)
     , num_landscape (landscape_age.n_elem)
     , weights (weights)
+    , offsets (arma::zeros(num_traps))
     , conditional_capture_rate (num_traps, num_landscape)
     , prior_prob_of_nest_location (num_landscape)
   {
     if(!(landscape_distance_to_traps.n_rows == num_traps && landscape_distance_to_traps.n_cols == num_landscape)) Rcpp::stop("err dim(landscape_distance_to_traps)");
     if(!(colony_counts_at_traps.n_rows == num_colonies && colony_counts_at_traps.n_cols == num_traps)) Rcpp::stop("err dim(colony_counts_at_traps)");
     if(!(weights.n_elem == num_colonies)) Rcpp::stop("err dim(weights)");
+  }
+
+  landscape_model (arma::mat landscape_distance_to_traps,
+                   arma::mat colony_counts_at_traps,
+                   arma::vec floral_cover_at_traps,
+                   arma::vec landscape_age,
+                   arma::vec weights,
+                   arma::vec offsets)
+    : landscape_distance_to_traps (landscape_distance_to_traps)
+    , colony_counts_at_traps (colony_counts_at_traps)
+    , floral_cover_at_traps (floral_cover_at_traps)
+    , landscape_age (landscape_age)
+    , num_traps (floral_cover_at_traps.n_elem)
+    , num_colonies (colony_counts_at_traps.n_rows)
+    , num_landscape (landscape_age.n_elem)
+    , weights (weights)
+    , offsets (offsets)
+    , conditional_capture_rate (num_traps, num_landscape)
+    , prior_prob_of_nest_location (num_landscape)
+  {
+    if(!(landscape_distance_to_traps.n_rows == num_traps && landscape_distance_to_traps.n_cols == num_landscape)) Rcpp::stop("err dim(landscape_distance_to_traps)");
+    if(!(colony_counts_at_traps.n_rows == num_colonies && colony_counts_at_traps.n_cols == num_traps)) Rcpp::stop("err dim(colony_counts_at_traps)");
+    if(!(weights.n_elem == num_colonies)) Rcpp::stop("err dim(weights)");
+    if(!(offsets.n_elem == num_traps)) Rcpp::stop("err dim(offsets)");
   }
 
   double marginal_likelihood (const double floral_cover_on_capture_rate, const double landscape_distance_on_capture_rate, const double landscape_age_on_colony_location)
@@ -84,7 +115,7 @@ struct landscape_model
     {
       for (unsigned trap=0; trap<num_traps; ++trap)
       {
-        conditional_capture_rate(trap, cell) = 
+        conditional_capture_rate(trap, cell) = offsets(trap) +
           floral_cover_on_capture_rate * floral_cover_at_traps(trap) +
               landscape_distance_on_capture_rate * landscape_distance_to_traps(trap, cell);
       }
@@ -144,7 +175,7 @@ struct landscape_model
     {
       for (unsigned trap=0; trap<num_traps; ++trap)
       {
-        conditional_capture_rate(trap, cell) = 
+        conditional_capture_rate(trap, cell) = offsets(trap) +
           floral_cover_on_capture_rate * floral_cover_at_traps(trap) +
               landscape_distance_on_capture_rate * landscape_distance_to_traps(trap, cell);
       }
@@ -244,7 +275,7 @@ struct landscape_model
     {
       for (unsigned trap=0; trap<num_traps; ++trap)
       {
-        conditional_capture_rate(trap, cell) = 
+        conditional_capture_rate(trap, cell) = offsets(trap) +
           floral_cover_on_capture_rate * floral_cover_at_traps(trap) +
               landscape_distance_on_capture_rate * landscape_distance_to_traps(trap, cell);
       }

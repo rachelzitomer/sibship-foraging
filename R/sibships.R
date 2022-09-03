@@ -62,7 +62,7 @@ sibship_foraging_model <- function(
   landscape_rasters, 
   resistance_model, 
   parameter_grid, 
-  num_blocks=2,
+  cells_per_block=5000,
   convergence_tolerance=1e-4,
   window_size=3,
   verbose=FALSE)
@@ -94,7 +94,7 @@ sibship_foraging_model <- function(
     resistance_distance_grid[,,i] <- distance_to_focal_raw(
       conductance=1./resistance_grid[,i,drop=FALSE],
       s=surface, 
-      num_blocks=num_blocks,
+      cells_per_block=cells_per_block,
       average_conductance=FALSE
     )
     data <- list(
@@ -138,7 +138,7 @@ sibship_foraging_model <- function(
     resistance_distance <- distance_to_focal_raw(
       conductance=1./resistance,
       s=surface, 
-      num_blocks=num_blocks,
+      cells_per_block=cells_per_block,
       average_conductance=FALSE
     )
     data$landscape_distance_to_traps <- resistance_distance
@@ -189,7 +189,7 @@ parametric_bootstrap <- function(
   fitted_model, 
   pars, 
   num_boot=10, 
-  num_blocks=2, 
+  cells_per_block=5000, 
   window_size=3,
   convergence_tolerance=1e-4,
   random_seed=NULL,
@@ -222,7 +222,7 @@ parametric_bootstrap <- function(
   resistance_distance <- distance_to_focal_raw(
     conductance=1./resistance,
     s=surface, 
-    num_blocks=num_blocks,
+    cells_per_block=cells_per_block,
     average_conductance=FALSE
   )
   data$landscape_distance_to_traps <- resistance_distance
@@ -311,7 +311,6 @@ parametric_bootstrap <- function(
 nonparametric_bootstrap <- function(
   fitted_model, 
   num_boot=10, 
-  num_blocks=2, 
   window_size=3,
   convergence_tolerance=1e-4,
   random_seed=NULL,

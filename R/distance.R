@@ -1,4 +1,4 @@
-distance_to_focal_raw <- function(conductance, s, num_blocks=2, average_conductance=TRUE){
+distance_to_focal_raw <- function(conductance, s, cells_per_block=5000, average_conductance=TRUE){
 
   stopifnot(all(conductance > 0))
 
@@ -27,10 +27,11 @@ distance_to_focal_raw <- function(conductance, s, num_blocks=2, average_conducta
   G    <- Matrix::solve(LQn, Zn)
   tG   <- t(as.matrix(G))
   E    <- Matrix::t(Zn) %*% G 
-  E2   <- Matrix::t(In) %*% G - v %*% t(v) %*% Matrix::t(In) %*% G
+  E2   <- Matrix::t(In) %*% G - (v %*% (t(v) %*% (Matrix::t(In) %*% G)))
 
   lE <- rep(0, N)
   nonfocal <- 1:(N-1)
+  num_blocks <- ceiling((N-1)/cells_per_block)
   blocks <- as.numeric(cut(nonfocal, breaks=num_blocks))
   for(i in unique(blocks))
   {
@@ -38,7 +39,7 @@ distance_to_focal_raw <- function(conductance, s, num_blocks=2, average_conducta
     lZ  <- Matrix::Diagonal(N)[,idx,drop=FALSE]
     lZn <- In %*% lZ - (In %*% v) %*% (t(v) %*% lZ)
     lG  <- Matrix::solve(LQn, lZn)
-    lE2 <- Matrix::t(In) %*% lG - v %*% t(v) %*% Matrix::t(In) %*% lG
+    lE2 <- Matrix::t(In) %*% lG - (v %*% (t(v) %*% (Matrix::t(In) %*% lG)))
     llE    <- Matrix::t(lZn) %*% lG 
     lE[idx] <- diag(as.matrix(llE))
     lE[N] <- lE[N] - sum(lE2[N,])

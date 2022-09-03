@@ -1,9 +1,17 @@
-#source(system.file("analysis/stand_age/midnorth.stand_age.R", package="sibships"))
 
+region <- "south"
+resolution <- "30m"
+species <- "bomvos"
+lower_bound <- -2.5
+upper_bound <- 2.5
+grid_size <- 5
+bootstraps <- 0
+prefix <- paste0(region, ".", species, ".", resolution)
+
+#-----------------------------------#
 library(sibships)
 library(raster)
 
-prefix <- "midnorth.bomvos.90m"
 load(system.file(paste0("data/", prefix, ".RData"), package="sibships"))
 
 landscape_covariates <- raster::stack(list("stand_age"=stand_age))
@@ -21,12 +29,13 @@ resistance_model <- function(raster_stack, parameters)
 
 scaling <- 1/sd(values(landscape_covariates[["stand_age"]]))
 parameter_grid <- as.matrix(expand.grid(
-  "theta"=scaling*seq(-0.5, 0.5, length.out=51)
+  "theta"=scaling*seq(lower_bound, upper_bound, length.out=grid_size)
 ))
 
 #does model work? evaluate at first point in parameter grid, check for NAs, etc
-plot(resistance_model(landscape_covariates, parameter_grid[1,]))
+print(resistance_model(landscape_covariates, parameter_grid[1,]))
 
+debug(radish::conductance_surface)
 fit <- sibship_foraging_model(
   colony_count_at_traps, 
   floral_cover_at_traps, 
@@ -38,14 +47,17 @@ fit <- sibship_foraging_model(
 )
 save(fit, file=paste0(prefix, ".stand_age.fitted.RData"))
 
-##simulate/refit at maximum likelihood estimates of the parameters
-#boot_at_mle <- parametric_bootstrap(fit, fit$mle, num_boot=100, verbose=TRUE, random_seed=1)
-#
-##simulate/refit at null model
-#null <- c("theta" = 0)
-#boot_at_null <- parametric_bootstrap(fit, null, num_boot=100, verbose=TRUE, random_seed=1)
-#
-#save(boot_at_null, boot_at_mle, file=paste0(prefix, ".stand_age.bootstrap.RData"))
+if (bootstraps > 0)
+{
+  #simulate/refit at maximum likelihood estimates of the parameters
+  boot_at_mle <- parametric_bootstrap(fit, fit$mle, num_boot=100, verbose=TRUE, random_seed=1)
+  
+  #simulate/refit at null model
+  null <- c("theta" = 0)
+  boot_at_null <- parametric_bootstrap(fit, null, num_boot=100, verbose=TRUE, random_seed=1)
+  
+  save(boot_at_null, boot_at_mle, file=paste0(prefix, ".stand_age.bootstrap.RData"))
+}
 
 ##make some figures to visualize loglik surface, uncertainty in estimates
 ##TODO: use prefix in nameing
