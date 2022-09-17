@@ -35,7 +35,7 @@ parameter_grid <- as.matrix(expand.grid(
 #does model work? evaluate at first point in parameter grid, check for NAs, etc
 print(resistance_model(landscape_covariates, parameter_grid[1,]))
 
-debug(radish::conductance_surface)
+debug(sibships::distance_to_focal_raw)
 fit <- sibship_foraging_model(
   colony_count_at_traps, 
   floral_cover_at_traps, 
@@ -43,9 +43,10 @@ fit <- sibship_foraging_model(
   landscape_covariates,
   resistance_model,
   parameter_grid,
-  verbose=TRUE
+  verbose=TRUE,
+  cells_per_block=25000,
 )
-save(fit, file=paste0(prefix, ".stand_age.fitted.RData"))
+#save(fit, file=paste0(prefix, ".stand_age.fitted.RData"))
 
 if (bootstraps > 0)
 {
@@ -56,7 +57,7 @@ if (bootstraps > 0)
   null <- c("theta" = 0)
   boot_at_null <- parametric_bootstrap(fit, null, num_boot=100, verbose=TRUE, random_seed=1)
   
-  save(boot_at_null, boot_at_mle, file=paste0(prefix, ".stand_age.bootstrap.RData"))
+#  save(boot_at_null, boot_at_mle, file=paste0(prefix, ".stand_age.bootstrap.RData"))
 }
 
 ##make some figures to visualize loglik surface, uncertainty in estimates

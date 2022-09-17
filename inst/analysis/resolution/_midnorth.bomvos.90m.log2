@@ -1,0 +1,4 @@
+Error: unexpected symbol in:
+"  make_option(c("--bootstraps"), type="integer", default=0, help="Number of simulations at null model/MLE")
+  make_option"
+Execution halted

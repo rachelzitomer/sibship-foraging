@@ -38,8 +38,13 @@ distance_to_focal_raw <- function(conductance, s, cells_per_block=5000, average_
     idx <- which(blocks == i)
     lZ  <- Matrix::Diagonal(N)[,idx,drop=FALSE]
     lZn <- In %*% lZ - (In %*% v) %*% (t(v) %*% lZ)
+    # this is just In %*% lZ - ones / N because v is constant and lZ are indicators
     lG  <- Matrix::solve(LQn, lZn)
+    # because of the above, we have Matrix::solve(LQn, In %*% lZ) - Matrix::solve(LQn, matrix(ones / N, nrow(In), ncol(lZ)))
+    # let these be A, B
     lE2 <- Matrix::t(In) %*% lG - (v %*% (t(v) %*% (Matrix::t(In) %*% lG)))
+    # t(In) %*% A - t(In) %*% B 
+    # and t(In) %*% B is ... ?
     llE    <- Matrix::t(lZn) %*% lG 
     lE[idx] <- diag(as.matrix(llE))
     lE[N] <- lE[N] - sum(lE2[N,])

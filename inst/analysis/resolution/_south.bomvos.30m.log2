@@ -1,0 +1,291 @@
+Loading required package: Matrix
+Loading required package: sp
+class      : RasterLayer 
+dimensions : 468, 525, 245700  (nrow, ncol, ncell)
+resolution : 30, 30  (x, y)
+extent     : -2177730, -2161980, 2717820, 2731860  (xmin, xmax, ymin, ymax)
+crs        : +proj=aea +lat_0=23 +lon_0=-96 +lat_1=29.5 +lat_2=45.5 +x_0=0 +y_0=0 +datum=NAD83 +units=m +no_defs 
+source     : memory
+names      : layer 
+values     : 0.0003517054, 1  (min, max)
+
+Fitting parameters -0.2149383 
+[1] loglik = -656.1949
+[2] loglik = -656.1949
+[3] loglik = -656.1949
+[4] loglik = -583.4683
+[5] loglik = -583.4168
+[6] loglik = -583.4123
+[7] loglik = -583.4123
+[8] loglik = -583.4123
+Fitting parameters -0.2063408 
+[1] loglik = -656.9946
+[2] loglik = -656.9946
+[3] loglik = -656.9946
+[4] loglik = -583.4878
+[5] loglik = -583.4186
+[6] loglik = -583.4123
+[7] loglik = -583.4123
+[8] loglik = -583.4123
+Fitting parameters -0.1977432 
+[1] loglik = -657.7838
+[2] loglik = -657.7838
+[3] loglik = -657.7838
+[4] loglik = -583.5101
+[5] loglik = -583.4207
+[6] loglik = -583.4123
+[7] loglik = -583.4123
+[8] loglik = -583.4123
+[9] loglik = -583.4123
+[10] loglik = -583.4123
+[11] loglik = -583.4123
+[12] loglik = -583.4123
+[13] loglik = -583.4123
+[14] loglik = -583.4123
+[15] loglik = -583.4123
+[16] loglik = -583.4123
+[17] loglik = -583.4123
+[18] loglik = -583.4123
+[19] loglik = -583.4123
+[20] loglik = -583.4123
+[21] loglik = -583.4123
+[22] loglik = -583.4123
+[23] loglik = -583.4123
+[24] loglik = -583.4123
+[25] loglik = -583.4123
+Fitting parameters -0.1891457 
+[1] loglik = -658.5602
+[2] loglik = -658.5602
+[3] loglik = -658.5602
+[4] loglik = -583.5351
+[5] loglik = -583.4232
+[6] loglik = -583.4123
+[7] loglik = -583.4123
+[8] loglik = -583.4123
+Fitting parameters -0.1805482 
+[1] loglik = -659.3217
+[2] loglik = -659.3217
+[3] loglik = -659.3217
+[4] loglik = -583.5629
+[5] loglik = -583.4261
+[6] loglik = -583.4123
+[7] loglik = -583.4123
+[8] loglik = -583.4123
+[9] loglik = -583.4123
+[10] loglik = -583.4123
+[11] loglik = -583.4123
+[12] loglik = -583.4123
+[13] loglik = -583.4123
+[14] loglik = -583.4123
+[15] loglik = -583.4123
+[16] loglik = -583.4123
+[17] loglik = -583.4123
+[18] loglik = -583.4123
+[19] loglik = -583.4123
+[20] loglik = -583.4123
+[21] loglik = -583.4123
+[22] loglik = -583.4123
+Fitting parameters -0.1719506 
+[1] loglik = -660.066
+[2] loglik = -660.066
+[3] loglik = -660.066
+[4] loglik = -583.5936
+[5] loglik = -583.4293
+[6] loglik = -583.4123
+[7] loglik = -583.4123
+[8] loglik = -583.4123
+Fitting parameters -0.1633531 
+[1] loglik = -660.7911
+[2] loglik = -660.7911
+[3] loglik = -660.7911
+[4] loglik = -583.6273
+[5] loglik = -583.4329
+[6] loglik = -583.4123
+[7] loglik = -583.4123
+[8] loglik = -583.4123
+Fitting parameters -0.1547556 
+[1] loglik = -661.4947
+[2] loglik = -661.4947
+[3] loglik = -661.4947
+[4] loglik = -583.664
+[5] loglik = -583.4369
+[6] loglik = -583.4123
+[7] loglik = -583.4123
+[8] loglik = -583.4123
+[9] loglik = -583.4123
+[10] loglik = -583.4123
+[11] loglik = -583.4123
+[12] loglik = -583.4123
+[13] loglik = -583.4123
+[14] loglik = -583.4123
+Fitting parameters -0.146158 
+[1] loglik = -662.1746
+[2] loglik = -662.1746
+[3] loglik = -662.1746
+[4] loglik = -583.7037
+[5] loglik = -583.4413
+[6] loglik = -583.4123
+[7] loglik = -583.4123
+[8] loglik = -583.4123
+Fitting parameters -0.1375605 
+[1] loglik = -662.8279
+[2] loglik = -662.8279
+[3] loglik = -662.8279
+[4] loglik = -583.7467
+[5] loglik = -583.4461
+[6] loglik = -583.4123
+[7] loglik = -583.4123
+[8] loglik = -583.4123
+Fitting parameters -0.128963 
+[1] loglik = -663.451
+[2] loglik = -663.451
+[3] loglik = -663.451
+[4] loglik = -583.7927
+[5] loglik = -583.4512
+[6] loglik = -583.4123
+[7] loglik = -583.4123
+[8] loglik = -583.4123
+Fitting parameters -0.1203654 
+[1] loglik = -664.0392
+[2] loglik = -664.0392
+[3] loglik = -664.0392
+[4] loglik = -583.8417
+[5] loglik = -583.4565
+[6] loglik = -583.4123
+[7] loglik = -583.4123
+[8] loglik = -583.4123
+[9] loglik = -583.4123
+[10] loglik = -583.4123
+[11] loglik = -583.4123
+[12] loglik = -583.4123
+[13] loglik = -583.4123
+[14] loglik = -583.4123
+[15] loglik = -583.4123
+[16] loglik = -583.4123
+[17] loglik = -583.4123
+[18] loglik = -583.4123
+[19] loglik = -583.4123
+Fitting parameters -0.1117679 
+[1] loglik = -664.5867
+[2] loglik = -664.5867
+[3] loglik = -664.5867
+[4] loglik = -583.8932
+[5] loglik = -583.4622
+[6] loglik = -583.4123
+[7] loglik = -583.4123
+[8] loglik = -583.4123
+[9] loglik = -583.4123
+[10] loglik = -583.4123
+Fitting parameters -0.1031704 
+[1] loglik = -665.0853
+[2] loglik = -665.0853
+[3] loglik = -665.0853
+[4] loglik = -583.9467
+[5] loglik = -583.4679
+[6] loglik = -583.4123
+[7] loglik = -583.4123
+[8] loglik = -583.4123
+[9] loglik = -583.4123
+[10] loglik = -583.4123
+Fitting parameters -0.09457285 
+[1] loglik = -665.5241
+[2] loglik = -665.5241
+[3] loglik = -665.5241
+[4] loglik = -584.0015
+[5] loglik = -583.4736
+[6] loglik = -583.4123
+[7] loglik = -583.4123
+[8] loglik = -583.4123
+[9] loglik = -583.4123
+[10] loglik = -583.4123
+Fitting parameters -0.08597531 
+[1] loglik = -665.8869
+[2] loglik = -665.8869
+[3] loglik = -665.8869
+[4] loglik = -584.0563
+[5] loglik = -583.479
+[6] loglik = -583.4123
+[7] loglik = -583.4123
+[8] loglik = -583.4123
+[9] loglik = -583.4123
+[10] loglik = -583.4123
+Fitting parameters -0.07737778 
+[1] loglik = -666.149
+[2] loglik = -666.149
+[3] loglik = -666.149
+[4] loglik = -584.1095
+[5] loglik = -583.4839
+[6] loglik = -583.4123
+[7] loglik = -583.4123
+[8] loglik = -583.4123
+[9] loglik = -583.4123
+[10] loglik = -583.4123
+[11] loglik = -583.4123
+[12] loglik = -583.4123
+[13] loglik = -583.4123
+[14] loglik = -583.4123
+[15] loglik = -583.4123
+[16] loglik = -583.4123
+[17] loglik = -583.4123
+[18] loglik = -583.4123
+[19] loglik = -583.4123
+[20] loglik = -583.4123
+[21] loglik = -583.4123
+[22] loglik = -583.4123
+[23] loglik = -583.4123
+[24] loglik = -583.4123
+[25] loglik = -583.4123
+[26] loglik = -583.4123
+Fitting parameters -0.06878025 
+[1] loglik = -666.27
+[2] loglik = -666.27
+[3] loglik = -666.27
+[4] loglik = -584.1584
+[5] loglik = -583.4879
+[6] loglik = -583.4123
+[7] loglik = -583.4123
+[8] loglik = -583.4123
+[9] loglik = -583.4123
+[10] loglik = -583.4123
+[11] loglik = -583.4123
+Fitting parameters -0.06018272 
+[1] loglik = -666.1793
+[2] loglik = -666.1793
+[3] loglik = -666.1793
+[4] loglik = -584.1984
+[5] loglik = -583.4903
+[6] loglik = -583.4123
+[7] loglik = -583.4123
+[8] loglik = -583.4123
+[9] loglik = -583.4123
+Fitting parameters -0.05158519 
+[1] loglik = -665.7475
+[2] loglik = -665.7475
+[3] loglik = -665.7475
+[4] loglik = -584.2215
+[5] loglik = -583.4899
+[6] loglik = -583.4123
+[7] loglik = -583.4123
+[8] loglik = -583.4123
+[9] loglik = -583.4123
+Fitting parameters -0.04298766 
+[1] loglik = -664.7204
+[2] loglik = -664.7204
+[3] loglik = -664.7204
+[4] loglik = -584.2124
+[5] loglik = -583.4847
+[6] loglik = -583.4123
+[7] loglik = -583.4123
+[8] loglik = -583.4123
+[9] loglik = -583.4123
+Fitting parameters -0.03439013 
+[1] loglik = -662.5639
+[2] loglik = -662.5639
+[3] loglik = -662.5639
+[4] loglik = -584.1401
+[5] loglik = -583.4714
+[6] loglik = -583.4123
+[7] loglik = -583.4123
+[8] loglik = -583.4123
+[9] loglik = -583.4123
+Fitting parameters -0.02579259 

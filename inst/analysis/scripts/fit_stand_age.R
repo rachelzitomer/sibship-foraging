@@ -7,7 +7,8 @@ option_list <- list(
   make_option(c("--lower_bound"), type="numeric", default=-2.5, help="Lower bound for stand age parameter (scaled by standard deviations)"),
   make_option(c("--upper_bound"), type="numeric", default=2.5, help="Upper bound for stand age parameter (scaled by standard deviations)"),
   make_option(c("--grid_size"), type="integer", default=51, help="Size of stand age parameter grid"),
-  make_option(c("--bootstraps"), type="integer", default=0, help="Number of simulations at null model/MLE")
+  make_option(c("--bootstraps"), type="integer", default=0, help="Number of simulations at null model/MLE"),
+  make_option(c("--block_size"), type="integer", default=5000, help="Higher might be faster but will use more memory")
 )
 opt_parser <- OptionParser(option_list=option_list)
 opt <- parse_args(opt_parser)
@@ -19,6 +20,7 @@ lower_bound <- opt$lower_bound
 upper_bound <- opt$upper_bound
 grid_size <- opt$grid_size
 bootstraps <- opt$bootstraps
+block_size <- opt$block_size
 prefix <- paste0(region, ".", species, ".", resolution)
 
 #-----------------------------------#
@@ -55,18 +57,31 @@ fit <- sibship_foraging_model(
   landscape_covariates,
   resistance_model,
   parameter_grid,
-  verbose=TRUE
+  verbose=TRUE,
+  cells_per_block=block_size
 )
 save(fit, file=paste0(prefix, ".stand_age.fitted.RData"))
 
 if (bootstraps > 0)
 {
   #simulate/refit at maximum likelihood estimates of the parameters
-  boot_at_mle <- parametric_bootstrap(fit, fit$mle, num_boot=100, verbose=TRUE, random_seed=1)
+  boot_at_mle <- parametric_bootstrap(
+    fit, 
+    fit$mle, 
+    num_boot=100, 
+    verbose=TRUE, 
+    random_seed=1
+  )
   
   #simulate/refit at null model
   null <- c("theta" = 0)
-  boot_at_null <- parametric_bootstrap(fit, null, num_boot=100, verbose=TRUE, random_seed=1)
+  boot_at_null <- parametric_bootstrap(
+    fit, 
+    null, 
+    num_boot=100, 
+    verbose=TRUE, 
+    random_seed=1
+  )
   
   save(boot_at_null, boot_at_mle, file=paste0(prefix, ".stand_age.bootstrap.RData"))
 }

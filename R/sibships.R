@@ -62,7 +62,7 @@ sibship_foraging_model <- function(
   landscape_rasters, 
   resistance_model, 
   parameter_grid, 
-  cells_per_block=5000,
+  cells_per_block=25000,
   convergence_tolerance=1e-4,
   window_size=3,
   verbose=FALSE)
@@ -189,7 +189,7 @@ parametric_bootstrap <- function(
   fitted_model, 
   pars, 
   num_boot=10, 
-  cells_per_block=5000, 
+  cells_per_block=25000, 
   window_size=3,
   convergence_tolerance=1e-4,
   random_seed=NULL,
