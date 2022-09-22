@@ -4,7 +4,7 @@ resolution <- "90m"
 species <- "bomvos"
 lower_bound <- -2.5
 upper_bound <- 2.5
-grid_size <- 5
+grid_size <- 1
 bootstraps <- 0
 prefix <- paste0(region, ".", species, ".", resolution)
 
@@ -36,6 +36,7 @@ parameter_grid <- as.matrix(expand.grid(
 print(resistance_model(landscape_covariates, parameter_grid[1,]))
 
 #debug(sibships::distance_to_focal_raw)
+print(system.time(
 fit <- sibship_foraging_model(
   colony_count_at_traps, 
   floral_cover_at_traps, 
@@ -44,8 +45,8 @@ fit <- sibship_foraging_model(
   resistance_model,
   parameter_grid,
   verbose=TRUE,
-  cells_per_block=1000,
 )
+))
 #save(fit, file=paste0(prefix, ".stand_age.fitted.RData"))
 
 if (bootstraps > 0)

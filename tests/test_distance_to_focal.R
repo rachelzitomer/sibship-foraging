@@ -1,6 +1,13 @@
+#-------------- test correctness of resistance distance calculation ----------------#
+
 library(sibships)
 library(gdistance)
 library(raster)
+
+is_equal <- function(x, y)
+{
+  abs(x - y) < sqrt(.Machine$double.eps)
+}
 
 toy_problem <- function(dim=20, n=5, seed=1)
 {
@@ -41,13 +48,29 @@ surface <- radish::conductance_surface(
 radish_distance <- sibships::distance_to_focal_raw(
   conductance=1./landscape[],
   s=surface, 
-  cells_per_block=20, #make it possible to have 1 block!
+  cells_per_block=13,
   average_conductance=FALSE
 )
 radish_result <- radish_distance[,-c(400)]
 
 # ------------ are they the same (up to constant factor)? --------- #
-stopifnot(cor(c(gdistance_result), c(radish_result)) == 1)
+stopifnot(is_equal(1, cor(c(gdistance_result), c(radish_result))))
 
 # ------------ check the last fucking cell that gdistance leaves out -------- #
-# TODO
+# using the inefficient but easy calculation for resistance distance via eigendecomposition
+Q <- surface$laplacian
+Q@x[] <- -1/(landscape[surface$adj[1,]+1] + landscape[surface$adj[2,]+1])
+Qd <- Matrix::Diagonal(nrow(Q), x = -Matrix::rowSums(Q))
+Q <- Q + Qd
+Qinv <- MASS::ginv(as.matrix(Q)) #the inefficient but easy way to calculate resistance distance
+Rd <- outer(rep(1, nrow(Qinv)), diag(Qinv)) + outer(diag(Qinv), rep(1, nrow(Qinv))) - 2*Qinv
+naive_distance <- Rd[cells,]
+stopifnot(is_equal(1, cor(c(naive_distance), c(radish_distance))))
+
+# ------------ check that unblocked calculation works -----------#
+radish_distance_2 <- sibships::distance_to_focal_raw(
+  conductance=1./landscape[],
+  s=surface, 
+  average_conductance=FALSE
+)
+stopifnot(is_equal(1, cor(c(radish_distance_2), c(radish_distance))))

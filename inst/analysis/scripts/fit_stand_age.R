@@ -8,7 +8,7 @@ option_list <- list(
   make_option(c("--upper_bound"), type="numeric", default=2.5, help="Upper bound for stand age parameter (scaled by standard deviations)"),
   make_option(c("--grid_size"), type="integer", default=51, help="Size of stand age parameter grid"),
   make_option(c("--bootstraps"), type="integer", default=0, help="Number of simulations at null model/MLE"),
-  make_option(c("--block_size"), type="integer", default=5000, help="Higher might be faster but will use more memory")
+  make_option(c("--block_size"), type="integer", default=25000, help="Higher might be faster but will use more memory")
 )
 opt_parser <- OptionParser(option_list=option_list)
 opt <- parse_args(opt_parser)
