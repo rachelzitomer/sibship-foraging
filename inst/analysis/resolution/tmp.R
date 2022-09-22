@@ -1,6 +1,6 @@
 
 region <- "south"
-resolution <- "30m"
+resolution <- "90m"
 species <- "bomvos"
 lower_bound <- -2.5
 upper_bound <- 2.5
@@ -35,7 +35,7 @@ parameter_grid <- as.matrix(expand.grid(
 #does model work? evaluate at first point in parameter grid, check for NAs, etc
 print(resistance_model(landscape_covariates, parameter_grid[1,]))
 
-debug(sibships::distance_to_focal_raw)
+#debug(sibships::distance_to_focal_raw)
 fit <- sibship_foraging_model(
   colony_count_at_traps, 
   floral_cover_at_traps, 
@@ -44,7 +44,7 @@ fit <- sibship_foraging_model(
   resistance_model,
   parameter_grid,
   verbose=TRUE,
-  cells_per_block=25000,
+  cells_per_block=1000,
 )
 #save(fit, file=paste0(prefix, ".stand_age.fitted.RData"))
 
