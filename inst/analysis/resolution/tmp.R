@@ -4,8 +4,8 @@ resolution <- "90m"
 species <- "bomvos"
 lower_bound <- -2.5
 upper_bound <- 2.5
-grid_size <- 1
-bootstraps <- 0
+grid_size <- 11
+bootstraps <- 1
 prefix <- paste0(region, ".", species, ".", resolution)
 
 #-----------------------------------#
@@ -35,28 +35,29 @@ parameter_grid <- as.matrix(expand.grid(
 #does model work? evaluate at first point in parameter grid, check for NAs, etc
 print(resistance_model(landscape_covariates, parameter_grid[1,]))
 
-#debug(sibships::distance_to_focal_raw)
-print(system.time(
-fit <- sibship_foraging_model(
-  colony_count_at_traps, 
-  floral_cover_at_traps, 
-  trap_coordinates,
-  landscape_covariates,
-  resistance_model,
-  parameter_grid,
-  verbose=TRUE,
-)
-))
-#save(fit, file=paste0(prefix, ".stand_age.fitted.RData"))
+##debug(sibships::distance_to_focal_raw)
+#fit <- sibship_foraging_model(
+#  colony_count_at_traps, 
+#  floral_cover_at_traps, 
+#  trap_coordinates,
+#  landscape_covariates,
+#  resistance_model,
+#  parameter_grid,
+#  verbose=TRUE,
+#)
+#save(fit, file="tmp.RData")
 
 if (bootstraps > 0)
 {
+  load("tmp.RData")
+  #debug(sibships::parametric_bootstrap)
+  debug(sibships::simulate_3parameter_model)
   #simulate/refit at maximum likelihood estimates of the parameters
-  boot_at_mle <- parametric_bootstrap(fit, fit$mle, num_boot=100, verbose=TRUE, random_seed=1)
+  boot_at_mle <- parametric_bootstrap(fit, fit$mle, num_boot=2, verbose=TRUE, random_seed=1)
   
   #simulate/refit at null model
   null <- c("theta" = 0)
-  boot_at_null <- parametric_bootstrap(fit, null, num_boot=100, verbose=TRUE, random_seed=1)
+  boot_at_null <- parametric_bootstrap(fit, null, num_boot=2, verbose=TRUE, random_seed=1)
   
 #  save(boot_at_null, boot_at_mle, file=paste0(prefix, ".stand_age.bootstrap.RData"))
 }

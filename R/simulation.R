@@ -34,7 +34,7 @@ simulate_3parameter_model <- function(data, pars, random_seed=NULL)
   foragers_per_colony <- rowSums(data$colony_count_at_traps)
 
   # simulate forager captures
-  floral_cover_at_traps <- outer(data$floral_cover_at_traps, rep(1, num_landscape))
+  floral_cover_at_traps <- outer(c(data$floral_cover_at_traps), rep(1, num_landscape))
   conditional_capture_rate <-
     prop.table(exp(
       pars["landscape_distance_on_capture_rate"] * data$landscape_distance_to_traps +
