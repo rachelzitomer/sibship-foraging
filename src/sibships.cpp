@@ -327,6 +327,30 @@ struct landscape_model
 
     return conditional_posterior;
   }
+  
+  //arma::vec posterior_predictive (const double floral_cover_on_capture_rate, const double landscape_distance_on_capture_rate, const double landscape_age_on_colony_location)
+  //{
+  //  //combine these?
+  //  arma::mat conditional_posterior = ...;//TODO
+  //  arma::mat conditional_capture_rate = ...;//TODO
+  //  // loop over colonies, calculate average pairwise distance
+  //  arma::vec mean_pairwise_distance(num_colonies);
+  //  for(colony=0; colony<?; ++colony)
+  //  {
+  //    for(unsigned i=0; i<num_traps; ++i)
+  //    {
+  //      for(unsigned j=0; j<num_traps; ++j)
+  //      {
+  //        mean_pairwise_distance(colony) += 
+  //          conditional_posterior.at(cell, colony) *
+  //          conditional_capture_rate.at(i, cell) *
+  //          conditional_capture_rate.at(j, cell) *
+  //          trap_distances.at(i, j);
+  //      }
+  //    }
+  //  }
+  //  return mean_pairwise_distance;
+  //}
 };
 
 // [[Rcpp::export]]

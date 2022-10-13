@@ -28,7 +28,6 @@ uname -v = #151-Ubuntu SMP Fri Jun 18 19:21:19 UTC 2021
 /bin/universe          = unknown
 
 PATH: /home/natep/.local/bin
-PATH: /home/natep/.miniconda3/envs/rspatial/bin
 PATH: /home/natep/.local/bin
 PATH: /home/natep/.miniconda3/envs/rspatial/bin
 PATH: /home/natep/.miniconda3/condabin

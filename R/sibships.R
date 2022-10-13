@@ -45,7 +45,7 @@
   mle <- sol$par
   X_range <- apply(X, 2, range)
   interior <- sapply(1:length(mle),
-    function(i) mle[i] >= min(X[,i]) & mle <= max(X[,i])
+    function(i) mle[i] >= min(X[,i]) & mle[i] <= max(X[,i])
   )
   out <- matrix(c(mle, ll_max), 1, byrow=TRUE)
   colnames(out) <- c(colnames(X), "loglik")
@@ -65,7 +65,9 @@ sibship_foraging_model <- function(
   cells_per_block=25000,
   convergence_tolerance=1e-4,
   window_size=3,
-  verbose=FALSE)
+  verbose=FALSE,
+  visitation_always_decreases_with_distance=TRUE
+  )
 {
   stopifnot(class(trap_coordinates) == "SpatialPoints")
   stopifnot(class(landscape_rasters) == "RasterStack")
@@ -108,7 +110,8 @@ sibship_foraging_model <- function(
       data, 
       starting_values,
       convergence_tolerance=convergence_tolerance,
-      verbose=verbose
+      verbose=verbose,
+      visitation_always_decreases_with_distance=visitation_always_decreases_with_distance
     )
   }
   fit_ll <- Reduce(c, lapply(fit_list, function(x) -x$value))
@@ -147,7 +150,8 @@ sibship_foraging_model <- function(
       data, 
       starting_values,
       convergence_tolerance=convergence_tolerance,
-      verbose=verbose
+      verbose=verbose,
+      visitation_always_decreases_with_distance=visitation_always_decreases_with_distance
     )
     nuisance_parameters <- fit_mle$par
     attr(loglik, "error") <- (-fit_mle$value) - loglik
@@ -193,7 +197,9 @@ parametric_bootstrap <- function(
   window_size=3,
   convergence_tolerance=1e-4,
   random_seed=NULL,
-  verbose=FALSE)
+  verbose=FALSE,
+  visitation_always_decreases_with_distance=TRUE
+  )
 {
   stopifnot(class(fitted_model) == "sibship_foraging_model")
   stopifnot(length(pars) == ncol(fitted_model$parameter_grid))
@@ -230,7 +236,8 @@ parametric_bootstrap <- function(
   fit <- fit_2parameter_model(
     data, 
     starting_values,
-    convergence_tolerance=convergence_tolerance
+    convergence_tolerance=convergence_tolerance,
+    visitation_always_decreases_with_distance=visitation_always_decreases_with_distance
   )
   nuisance_parameters <- fit$par
   stopifnot(all(names(nuisance_parameters) %in% names(starting_values)))
@@ -257,7 +264,8 @@ parametric_bootstrap <- function(
       fit_2parameter_model(
         sim_data, 
         starting_values, 
-        convergence_tolerance=convergence_tolerance
+        convergence_tolerance=convergence_tolerance,
+        visitation_always_decreases_with_distance=visitation_always_decreases_with_distance
       )
     })
 
@@ -278,7 +286,8 @@ parametric_bootstrap <- function(
       sim_data, 
       starting_values,
       convergence_tolerance=convergence_tolerance,
-      verbose=verbose
+      verbose=verbose,
+      visitation_always_decreases_with_distance=visitation_always_decreases_with_distance
     )
 
     # Store MLEs
@@ -290,11 +299,14 @@ parametric_bootstrap <- function(
     mles <- rbind(mles, tmp)
 
     # Store refitted models
+    parameter_grid_rename <- parameter_grid
+    colnames(parameter_grid_rename) <- 
+      paste0("sim_", colnames(parameter_grid))
     tmp <- cbind(
       seed=seed, 
       true_parameters,
       true_nuisance_pars,
-      parameter_grid, 
+      parameter_grid_rename, 
       sim_nuisance_pars,
       sim_loglik=sim_loglik
     )
@@ -314,7 +326,9 @@ nonparametric_bootstrap <- function(
   window_size=3,
   convergence_tolerance=1e-4,
   random_seed=NULL,
-  verbose=FALSE)
+  verbose=FALSE,
+  visitation_always_decreases_with_distance=TRUE
+  )
 {
   stopifnot(class(fitted_model) == "sibship_foraging_model")
   stopifnot(length(pars) == ncol(fitted_model$parameter_grid))
@@ -352,7 +366,8 @@ nonparametric_bootstrap <- function(
       fit_2parameter_model(
         sim_data, 
         starting_values, 
-        convergence_tolerance=convergence_tolerance
+        convergence_tolerance=convergence_tolerance,
+        visitation_always_decreases_with_distance=visitation_always_decreases_with_distance
       )
     })
 

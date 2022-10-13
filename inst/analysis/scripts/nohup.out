@@ -1,0 +1,4 @@
+fit_stand_age_and_roads.R: line 2: syntax error near unexpected token `optparse'
+fit_stand_age_and_roads.R: line 2: `library(optparse)'
+fit_stand_age_and_roads.R: line 2: syntax error near unexpected token `optparse'
+fit_stand_age_and_roads.R: line 2: `library(optparse)'

@@ -29,22 +29,31 @@ library(raster)
 
 load(system.file(paste0("data/", prefix, ".RData"), package="sibships"))
 
-landscape_covariates <- raster::stack(list("stand_age"=stand_age))
+#TODO:
+# it seems like some values of roads raster are NA?
+# we replace with 0 here, but this really should be fixed
+roads[is.na(roads[])] <- 0
+
+landscape_covariates <- raster::stack(list("stand_age"=stand_age, "roads"=roads))
 
 resistance_model <- function(raster_stack, parameters)
 {
   # converts stack of rasters to a single output raster
   # representing a resistance surface
   stopifnot("stand_age" %in% names(raster_stack))
-  stopifnot("theta" %in% names(parameters))
-  stopifnot(length(parameters) == 1)
-  resistance <- exp(raster_stack[["stand_age"]] * parameters["theta"])
+  stopifnot("roads" %in% names(raster_stack))
+  stopifnot("stand_age" %in% names(parameters))
+  stopifnot("roads" %in% names(parameters))
+  stopifnot(length(parameters) == 2)
+  resistance <- exp(raster_stack[["stand_age"]] * parameters["stand_age"] + raster_stack[["roads"]] * parameters["roads"])
   return(resistance)
 }
 
-scaling <- 1/sd(values(landscape_covariates[["stand_age"]]))
+scaling_stand_age <- 1/sd(values(landscape_covariates[["stand_age"]]))
+scaling_roads <- 1/sd(values(landscape_covariates[["roads"]]))
 parameter_grid <- as.matrix(expand.grid(
-  "theta"=scaling*seq(lower_bound, upper_bound, length.out=grid_size)
+  "stand_age"=scaling_stand_age*seq(lower_bound, upper_bound, length.out=grid_size),
+  "roads"=scaling_roads*seq(lower_bound, upper_bound, length.out=grid_size)
 ))
 
 #does model work? evaluate at first point in parameter grid, check for NAs, etc
@@ -60,7 +69,7 @@ fit <- sibship_foraging_model(
   verbose=TRUE,
   cells_per_block=block_size
 )
-save(fit, file=paste0(prefix, ".stand_age.fitted.RData"))
+save(fit, file=paste0(prefix, ".stand_age_and_roads.fitted.RData"))
 
 if (bootstraps > 0)
 {
@@ -68,9 +77,10 @@ if (bootstraps > 0)
   boot_at_mle <- parametric_bootstrap(
     fit, 
     fit$mle, 
-    num_boot=100, 
+    num_boot=5, 
     verbose=TRUE, 
-    random_seed=1
+    random_seed=1,
+    visitation_always_decreases_with_distance=visitation_always_decreases_with_distance
   )
   
   ##simulate/refit at null model
@@ -84,41 +94,10 @@ if (bootstraps > 0)
   #  null, 
   #  num_boot=100, 
   #  verbose=TRUE, 
-  #  random_seed=1
+  #  random_seed=1,
+  #  visitation_always_decreases_with_distance=visitation_always_decreases_with_distance
   #)
   
-  save(boot_at_null, boot_at_mle, file=paste0(prefix, ".stand_age.bootstrap.RData"))
+  save(boot_at_null, boot_at_mle, file=paste0(prefix, ".stand_age_and_roads.bootstrap.RData"))
 }
 
-##make some figures to visualize loglik surface, uncertainty in estimates
-##TODO: use prefix in nameing
-#
-#dir.create("fig")
-#
-#plot_1d_likelihood_surface(
-#  fit, 
-#  simulations=boot_at_mle, 
-#  sim_color="dodgerblue"
-#  ) + 
-#  xlim(-0.5, 0.5) + 
-#  ggtitle("Bootstrap") 
-#ggplot2::ggsave(paste0("fig/", prefix, ".sim_at_mle.png"), height=4, width=7, units="in", dpi=300)
-#
-#plot_1d_likelihood_surface(
-#  fit, 
-#  simulations=boot_at_null, 
-#  sim_color="firebrick"
-#  ) + 
-#  xlim(-0.5, 0.5) + 
-#  ggtitle("Null model") 
-#ggplot2::ggsave("fig/midnorth.sim_at_null.png", height=4, width=7, units="in", dpi=300)
-#
-#plot_1d_sampling_distributions(
-#  fit, 
-#  parametric_bootstraps=boot_at_mle, 
-#  null_simulations=boot_at_null, 
-#  null_color="firebrick", boot_color="dodgerblue"
-#  ) +
-#  xlim(-0.5, 0.5) + 
-#  ggtitle("Null/bootstrap distributions")
-#ggplot2::ggsave("fig/midnorth.sampling_dist.png", height=4, width=7, units="in", dpi=300)
