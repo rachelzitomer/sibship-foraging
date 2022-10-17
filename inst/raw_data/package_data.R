@@ -28,6 +28,8 @@ for (species in c("bomvos", "bomcal"))
       decorator <- c("30m"="binary", "60m"="proportion", "90m"="proportion")[resolution]
       stand_age <- readAll(raster(paste0(region, "_agemap_", resolution, ".tif")))
       roads <- readAll(raster(paste0(region, "_roads_", decorator, "_", resolution, ".tif")))
+      canopy_cover<-readAll(raster(paste0(region,'_canopy_cover_map_', resolution, '.tif')))
+      stopifnot(compareCRS(stand_age,canopy_cover))
       stopifnot(compareCRS(stand_age, roads))
       stopifnot(all(rownames(trap_coordinates) == rownames(capture_count_at_traps)))
       stopifnot(all(rownames(trap_coordinates) == colnames(colony_count_at_traps)))
@@ -37,6 +39,7 @@ for (species in c("bomvos", "bomcal"))
       save(
         floral_cover_at_traps,
         stand_age,
+        canopy_cover,
         roads,
         trap_coordinates,
         colony_count_at_traps,
