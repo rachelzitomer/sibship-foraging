@@ -101,3 +101,31 @@ if (bootstraps > 0)
   save(boot_at_null, boot_at_mle, file=paste0(prefix, ".stand_age_and_roads.bootstrap.RData"))
 }
 
+#in practice, we needed to run this on multicore processing, which looked like this:
+
+#wrap bootstrap function so it doesn't require inputs
+wrapped_boot<-function(num_boot = 1, random_seed = sample.int(10e6,1)){
+  parametric_bootstrap(
+    fit, 
+    fit$mle, #pars
+    num_boot = num_boot,#changed to run one at a time 
+    cells_per_block = 25000,
+    verbose = TRUE,
+    random_seed = random_seed,#different seed for every boot, but actual seeds will be saved in output DF if I need to replicate
+    visitation_always_decreases_with_distance = TRUE
+  )
+}
+
+#run bootstraps
+system.time({  
+  boot.list<-parallel::mclapply(rep(1,opt$bootstraps), wrapped_boot, mc.cores = 100, mc.preschedule = FALSE)
+})
+
+#extract MLEs and loglik_surfaces into dataframes to write out
+
+boot.list.t<-boot.list %>% 
+  transpose
+
+boot.df.mles<-as.data.frame(do.call(rbind,boot.list.t$MLEs))
+
+boot.df.loglik.surfaces<-as.data.frame(do.call(rbind, boot.list.t$loglik_surfaces))
