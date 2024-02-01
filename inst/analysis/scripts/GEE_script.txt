@@ -1,0 +1,236 @@
+//define roi around study area first (can use polygon tool in GEE)
+
+//grab NLCD
+var nlcd_coastrange = ee.Image('USGS/NLCD/NLCD2016')
+          .clip(roi)
+          .select('landcover');
+
+//install Landtrendr API
+var ltgee = require('users/emaprlab/public:Modules/LandTrendr.js');
+
+//visualize roi
+Map.centerObject(roi);
+
+var empty = ee.Image().byte();
+
+var outline = empty.paint({
+  featureCollection: ee.FeatureCollection(roi),
+  color: 1,
+  width: 3
+});
+
+Map.addLayer(outline, {palette: 'FF0000'}, 'roi boundary');
+
+//set scale value 
+var scale_value = 30;
+
+/////////////////////////////////////RUN LANDTRENDR//////////////////////////////////////
+
+//LandTrendr parameters:
+
+var startYear = 1984;
+var endYear = 2021;
+var grow_startDay = '06-15';
+var grow_endDay = '09-15';
+var maskThese = ['cloud', 'shadow', 'snow', 'water'];
+var index = 'NBR';
+
+var run_params = { 
+  maxSegments:            6,
+  spikeThreshold:         0.9,
+  vertexCountOvershoot:   3,
+  preventOneYearRecovery: true,
+  recoveryThreshold:      0.25,
+  pvalThreshold:          0.05,
+  bestModelProportion:    0.75,
+  minObservationsNeeded:  6
+};
+
+var change_params = {
+  delta:  'loss',
+  sort:   'greatest',
+  year:   {checked:true, start:1984, end:2021},
+  mag:    {checked:true, value:200,  operator:'>'},
+  dur:    {checked:true, value:4,    operator:'<'},//duration of disturbance event must be less than 4 years
+  preval: {checked:true, value:300,  operator:'>'},
+  mmu:    {checked:true, value:11},//minimum continuous pixels
+};
+
+// add index to changeParams object
+change_params.index = index;
+
+// run landtrendr (wrapper for buildSRcollection and buildLTcollections)
+
+var LT_grow = ltgee.runLT(startYear, endYear, grow_startDay, grow_endDay, roi, index, [], run_params, maskThese);
+
+print(LT_grow,'LT result grow');
+
+var changeMap_grow = ltgee.getChangeMap(LT_grow,change_params);
+
+print(changeMap_grow,'Change map grow');
+
+var yodMap_grow = changeMap_grow.clip(roi)
+                                .select('yod')
+                                .rename('yod_lt');
+                                
+//viz
+var palette = ['#9400D3', '#4B0082', '#0000FF', '#00FF00', '#FFFF00', '#FF7F00', '#FF0000'];//define a custom pallette (from ChangeMapper UI example script)
+
+var yodVisParams = {
+  min: startYear,
+  max: endYear,
+  palette: palette
+};
+
+Map.centerObject(yodMap_grow,11);
+
+//take a look
+//Map.addLayer(yodMap_grow,yodVisParams,'year of disturbance-growing season');
+
+/*
+//export grow_map to drive
+Export.image.toDrive({
+  image: yodMap_grow,
+  description: 'yodMap_grow',
+  scale: 30,
+  crs: 'EPSG:5070',
+  maxPixels: 1e13,
+  region: yodMap_grow.geometry()
+});
+
+//export nlcd map to drive
+Export.image.toDrive({
+  image:nlcd_coastrange,
+  description: 'nlcd',
+  scale:30,
+  crs: 'EPSG:5070',
+  region: nlcd_coastrange.geometry()
+})
+
+////////////////////////////////////////////TEST ACCURACY/////////////////////////////////////////////////
+//assets used in this part of the script (truthed_polys) are not publicly available-confidential stand information from land owners
+
+//make shapefile of ages into an image:
+//print(truthed_polys,'LO age shapefile');//see object type (feature collection) and attributes
+
+var truthed_img = truthed_polys
+  .filter(ee.Filter.notNull(['yod']))
+  .filter(ee.Filter.lte('yod',2020))
+  .reduceToImage({
+    properties: ['yod'],
+    reducer: ee.Reducer.max()//take the most recent disturbance year if polygons overlap
+});
+
+var truthed_img = ee.Image(truthed_img.select('max'))
+                                      .clip(roi)
+                                      .rename('yod_truthed');
+
+var truthed_img_rp = truthed_img.reproject('EPSG:4326',null,scale_value);//reproject to be the same as change maps
+
+print(truthed_img_rp,'LO age image');
+
+//examine patterns in year of disturbance between polygon features and image version
+var truthed_poly_hist = ui.Chart.feature.histogram({features:truthed_polys,
+                                                property: 'yod'});
+                                  
+var truthed_img_hist = ui.Chart.image.histogram({image:truthed_img_rp.select('yod_truthed'),
+                                                region: truthed_img_rp.geometry(),
+                                                scale: scale_value,
+                                                maxPixels: 1e10
+                                                })//increased maxPixels
+                                                .setOptions({
+                                                title: 'Harvest year distribution, landowner data',
+                                                hAxis:{title: 'Harvest year', titleTextStyle: {italic: false, bold: true}},
+                                                vAxis: {title: 'Frequency', titleTextStyle: {italic: false, bold: true}},
+                                                legend: {position:'none'}
+                                                });
+
+print(truthed_poly_hist,'histogram of LO year of disturbance feature collection');
+
+print(truthed_img_hist,'histogram of LO year of disturbance image');
+
+//Map.addLayer(truthed_img_rp,yodVisParams,'truthed image')//view image of truthed age map from LO
+
+//stratified sampling of truthed image by yod
+
+var strat_pts = truthed_img_rp.stratifiedSample({numPoints:100,
+                                              classBand: 'yod_truthed',
+                                              seed:1234,
+                                              scale:scale_value,
+                                              geometries:true
+                                              });
+
+print(strat_pts,'test points');
+
+//extract values from change map:
+
+var strat_pts_testedGrow = yodMap_grow.sampleRegions({collection:strat_pts,
+                                                      scale:scale_value,
+                                                      tileScale:4
+                                                      });//tileScale to up to avoid image too large error
+
+print(strat_pts_testedGrow, 'test points + grow LT estimated yod');//see what the bands in the new feature collection looks like
+
+//check out the visual distribution of points on the map:
+
+// Create an empty image into which to paint the features
+var empty = ee.Image().byte();
+
+//paint with different colors
+var test_colors = empty.paint({
+  featureCollection: strat_pts,
+  color: 'yod_truthed',
+  width:'yod_truthed'
+});
+
+//Map.addLayer(test_colors, {palette: palette, min:1984, max: 2020}, 'truthed map values');
+
+//scatterplot between LT classification and truthed data:
+
+var scatter_grow = ui.Chart.feature.byFeature({features:strat_pts_testedGrow,
+                                                xProperty: 'yod_truthed',
+                                                yProperties: 'yod_lt'})
+                                                .setChartType('ScatterChart')
+                                                .setOptions({title: 'Growing Season LandTrendr vs. Truthed Year of Disturbance',
+                                                              haxis:{title: 'Truthed Year of Disturbance'},
+                                                              vaxis:{title: 'LT Predicted Year of Disturbance'},
+                                                              pointSize:1
+                                                              });
+
+print(scatter_grow,'scatterplot growing season');
+
+//Reclass to general forest categories so I can test more general accuracy for broader age classes:
+
+var forest_truthClass = function(feat) {
+  var newfeat = ee.Algorithms.If(ee.Number(feat.get('yod_truthed')).gte(2011),
+                                  feat.set({class_truth:0}),//'early seral' forest
+                                  ee.Algorithms.If(ee.Number(feat.get('yod_truthed')).lte(2006),
+                                  feat.set({class_truth:2}),//closed canopy
+                                  feat.set({class_truth:1})));//'transitional' forest
+  return newfeat;
+};
+
+var forest_ltClass = function(feat) {
+  var newfeat = ee.Algorithms.If(ee.Number(feat.get('yod_lt')).gte(2010),
+                                  feat.set({class_lt:0}),//early seral
+                                  ee.Algorithms.If(ee.Number(feat.get('yod_lt')).lte(2006),
+                                  feat.set({class_lt:2}),//closed canopy
+                                  feat.set({class_lt:1})));//transitional
+  return newfeat;
+};
+
+var strat_pt_class_grow = strat_pts_testedGrow.map(forest_truthClass)
+                                              .map(forest_ltClass);
+
+//Get accuracy estimates from error matrices:
+var confusion_year_grow = strat_pts_testedGrow.errorMatrix('yod_truthed','yod_lt',ee.List.sequence(1984,2021));
+
+print(confusion_year_grow.accuracy(),'grow accuracy year');
+
+var confusion_class_grow = strat_pt_class_grow.errorMatrix('class_truth','class_lt');
+
+print(confusion_class_grow,'confusion grow');
+print(confusion_class_grow.accuracy(),'grow accuracy overall');
+print(confusion_class_grow.producersAccuracy(),'grow producers accuracy');
+print(confusion_class_grow.consumersAccuracy(),'grow consumers accuracy')
+*/
